@@ -54,3 +54,16 @@ cpdef object factoradicToPermitation(object A, np.ndarray[DTYPE_int_t, ndim=1] d
         l -= 1
     P.append( A[0] )
     return P
+
+cpdef knapsack(np.ndarray[DTYPE_int_t, ndim=2] items, int N, int W):
+    cdef int i, j
+    cdef np.ndarray[DTYPE_int_t, ndim=1] current = np.zeros(W+1, dtype=np.int)
+    cdef np.ndarray[DTYPE_int_t, ndim=1] past = np.zeros(W+1, dtype=np.int)
+
+    for i in range(1,N+1):
+        past[:] = current[:]
+        for j in range(items[i,1]+1,W+1):
+            if past[j-items[i,1]] + items[i,0] > past[j]:
+                current[j] = past[j-items[i,1]] + items[i,0]
+
+    print current[W]
