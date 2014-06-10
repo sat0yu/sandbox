@@ -1,4 +1,0 @@
-checkio
-=======
-
-CheckiOでお勉強
