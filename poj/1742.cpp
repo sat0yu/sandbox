@@ -16,8 +16,10 @@
 using namespace std;
 
 int n, m;
-int A[MAXN], C[MAXM];
-bool M[MAXN][MAXM];
+int A[MAXN], C[MAXN];
+// メモ配列は2*mで十分(M[0],M[1]をprev,curとして交互に使用)
+// cur[j]に格納するのはコインA[i]の残り使用可能枚数(<C[i])
+int M[2][MAXM];
 
 int main(int argc, char** argv){
     while(1){
@@ -25,30 +27,39 @@ int main(int argc, char** argv){
         if(!n && !m){ break; }
         for(int i=1; i<=n; i++){ cin >> A[i]; }
         for(int i=1; i<=n; i++){ cin >> C[i]; }
-        // メモ配列は毎回初期化
-        memset(M, false, sizeof(M));
+
+        // メモ配列は負の値で初期化
+        memset(M, -1, sizeof(M));
+
         // DP
         for(int i=1; i<=n; i++){
+            int* prev = M[(i+1)%2];
+            int* cur = M[i%2];
+
+            // 0は0枚のコインを使って表現可能
+            prev[0] = 0;
+            cur[0] = C[i];
+
             for(int j=1; j<=m; j++){
-                // A_(i-1)までのコインの結果をコピー
-                M[i][j] = M[i-1][j];
-                // (j - A[i])がA_(i-1)までのコインを使って表現可能ならば
-                // A_iのコインを使ってjも表現可能
-                if( (j - A[i] > 0) && (M[i-1][j - A[i]]) ){
-                    for(int k=1; k<=C[i] && (j - A[i] + A[i]*k < MAXM); k++){
-                        M[i][(j - A[i]) + A[i]*k] = true;
-                    }
+                // 先にcur[j-A[i]]を確認して、残り利用可能枚数が正ならば
+                // デクリメントした値をメモ配列に代入
+                if( j - A[i] >= 0 && cur[j - A[i]] > 0 ){
+                    cur[j] = cur[j -A[i]] - 1;
+                }
+
+                // そもそもA[i]のコインを使わなくても表現可能な場合は
+                // 改めてC[i]で上書き
+                if( prev[j] >= 0 ){
+                    cur[j] = C[i];
                 }
             }
-            // A_iのコインだけで表現可能
-            for(int j=1; j<=C[i]; j++){
-                M[i][ A[i]*j ] = true;
-            }
         }
+
         // 回答出力
         int count=0;
-        for(int i=1; i<=m; i++){
-            if(M[n][i]){ count++; }
+        for(int j=1; j<=m; j++){
+            // 非負ならば表現可能
+            if(M[n%2][j] >= 0){ count++; }
         }
         cout << count << endl;
     }
